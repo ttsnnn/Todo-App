@@ -17,7 +17,7 @@ todoForm.addEventListener("submit", (e) => {
   addToForm();
 });
 
-/* sort from new to old tasks */
+/* sorting from new to old tasks */
 sortNewBtn.addEventListener("click", () => {
   allTodos.sort((a, b) => {
     if (a.deadline === "No deadline" && b.deadline === "No deadline") return 0;
@@ -35,7 +35,7 @@ sortNewBtn.addEventListener("click", () => {
   updateTodoList();
 });
 
-/* sort from old to new tasks */
+/* sorting from old to new tasks */
 sortOldBtn.addEventListener("click", () => {
   allTodos.sort((a, b) => {
     if (a.deadline === "No deadline" && b.deadline === "No deadline") return 0;
@@ -53,15 +53,12 @@ sortOldBtn.addEventListener("click", () => {
   updateTodoList();
 });
 
-/* let allTodos = getTodos(); */
-/* getTodosFromServer();
-updateTodoList(); */
-
+/* updating list */
 function updateTodoList() {
   todoListUL.innerHTML = "";
 
   if (allTodos.length === 0) {
-    todoListUL.innerHTML = `<p class="empty-tasks">Список задач пуст. Добавьте что-нибудь!</p>`;
+    todoListUL.innerHTML = `<p class="empty-tasks">Task list is empty. Add something!</p>`;
     return;
   }
 
@@ -71,6 +68,7 @@ function updateTodoList() {
   });
 }
 
+/* creating new todo */
 function createNewTodoItem(todo, todoIndex) {
   const todoId = "todo-" + todoIndex;
   const todoLI = document.createElement("li");
@@ -108,14 +106,7 @@ function createNewTodoItem(todo, todoIndex) {
     deleteTodoItem(todoIndex);
   });
 
-  /* old checkbox
-  const checkbox = todoLI.querySelector("input");
-  checkbox.addEventListener("change", () => {
-    allTodos[todoIndex].completed = checkbox.checked;
-    saveTodos();
-  });
-  checkbox.checked = todo.completed; */
-
+  /* changing the checkbox and saving changes */
   const checkbox = todoLI.querySelector("input");
   checkbox.addEventListener("change", async () => {
     const todoId = allTodos[todoIndex]._id;
@@ -134,7 +125,7 @@ function createNewTodoItem(todo, todoIndex) {
         allTodos[todoIndex].completed = isCompleted;
       }
     } catch (error) {
-      console.error("Ошибка при обновлении статуса", error);
+      console.error("Error", error);
       checkbox.checked = !isCompleted;
     }
   });
@@ -152,26 +143,7 @@ function createNewTodoItem(todo, todoIndex) {
   return todoLI;
 }
 
-/* old add new todo
-  function addToForm() {
-    const todoText = todoInput.value.trim();
-    const deadline = todoDeadline.value ? dayjs(todoDeadline.value).format("DD.MM.YY") : "No deadline";
-  
-    if (todoText.length > 0) {
-      const todoObject = {
-        text: todoText,
-        completed: false,
-        deadline
-      };
-  
-      allTodos.push(todoObject);
-      updateTodoList();
-      saveTodos();
-  
-      // todoInput.value = "";
-      // todoDeadline.value = "";
-    }
-  } */
+/* adding to form */
 
 async function addToForm() {
   const todoText = todoInput.value.trim();
@@ -200,23 +172,17 @@ async function addToForm() {
       todoInput.value = "";
       todoDeadline.value = "";
     } catch (error) {
-      console.error("Не удалось добавить задачу:", error);
+      console.error("Error:", error);
     }
   }
 }
 
-/* old delete todo
-function deleteTodoItem(todoIndex) {
-  allTodos = allTodos.filter((_, i) => i !== todoIndex);
-  saveTodos();
-  updateTodoList();
-} */
-
+/* deleting todo */
 async function deleteTodoItem(todoIndex) {
   const todoId = allTodos[todoIndex]._id;
   const todoText = allTodos[todoIndex].text;
 
-  if (!confirm(`Вы уверены, что хотите удалить задачу: ${todoText}?`)) {
+  if (!confirm(`Are you sure you want to delete the task: ${todoText}?`)) {
     return;
   }
 
@@ -230,28 +196,17 @@ async function deleteTodoItem(todoIndex) {
       updateTodoList();
     }
   } catch (error) {
-    console.error("Не удалось удалить задачу:", error);
+    console.error("Error:", error);
   }
 }
 
-/* function saveTodos() {
-  const todoJson = JSON.stringify(allTodos);
-  localStorage.setItem("todos", todoJson);
-}
- */
-
-/* old get todos (localstorage)
-function getTodos() {
-  const todos = localStorage.getItem("todos") || "[]";
-  return JSON.parse(todos);
-} */
-
+/* getting todos */
 async function getTodosFromServer() {
   try {
     const response = await fetch("http://localhost:3000/api/todos");
     allTodos = await response.json();
     updateTodoList();
   } catch (error) {
-    console.error("Ошибка при загрузке задач: ", error);
+    console.error("Error: ", error);
   }
 }

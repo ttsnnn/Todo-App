@@ -28,7 +28,7 @@ app.patch("/api/todos/:id", async (req, res) => {
     const updatedTodo = await Todo.findByIdAndUpdate(req.params.id, req.body, { returnDocument: 'after' });
     res.json(updatedTodo);
   } catch (error) {
-    res.status(400).json({ message: 'Ошибка при обновлении' });
+    res.status(400).json({ message: 'Error during update' });
   }
 });
 
