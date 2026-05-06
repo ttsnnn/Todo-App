@@ -11,6 +11,7 @@ const sortOldBtn = document.getElementById("sort-old");
 let allTodos = [];
 
 getTodosFromServer();
+updateTodoList();
 
 todoForm.addEventListener("submit", (e) => {
   e.preventDefault();
