@@ -185,21 +185,84 @@ input[type="checkbox"] {
   display: none;
 }
 
+.empty-tasks {
+  color: var(--text-color);
+  text-align: center;
+  font-size: 1.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 200ms ease;
+}
+
+.empty-tasks:hover {
+  color: var(--accent-color);
+  transform: translateY(-2px);
+}
+
+.sort-controls {
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  align-items: center;
+}
+
+#sort-new,
+#sort-old {
+  background-color: var(--accent-color);
+  color: var(--backgound);
+  border: none;
+  font: inherit;
+  font-weight: 600;
+  font-size: 0.9rem;
+  padding: 10px 13px;
+  border-radius: 1000px;
+  cursor: pointer;
+}
+
 @media (max-width: 500px) {
   h1 {
     font-size: 3.5rem;
     margin-top: 50px;
   }
 
+  .input-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  #todo-input {
+    width: 100%;
+    order: 1;
+  }
+
+  #deadline-input {
+    width: 100%;
+    box-sizing: border-box;
+    order: 2;
+  }
+
   #add-button {
-    position: unset;
     width: 100%;
     margin-top: 10px;
     padding: 15px;
-    height: auto;
+    order: 3;
+  }
+
+  .sort-controls {
+    justify-content: space-between;
+  }
+
+  #sort-new,
+  #sort-old {
+    flex: 1;
   }
 
   html {
     font-size: 16px;
+  }
+
+  .empty-tasks {
+    font-size: 1.5rem;
   }
 }

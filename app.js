@@ -5,36 +5,65 @@ const todoInput = document.getElementById("todo-input");
 const todoListUL = document.getElementById("todo-list");
 const todoDeadline = document.getElementById("deadline-input");
 
-let allTodos = getTodos();
-updateTodoList();
+const sortNewBtn = document.getElementById("sort-new");
+const sortOldBtn = document.getElementById("sort-old");
+
+let allTodos = [];
+
+getTodosFromServer();
 
 todoForm.addEventListener("submit", (e) => {
   e.preventDefault();
   addToForm();
 });
 
-function addToForm() {
-  const todoText = todoInput.value.trim();
-  const deadline = todoDeadline.value ? dayjs(todoDeadline.value).format("DD.MM.YY") : "No deadline";
+/* sort from new to old tasks */
+sortNewBtn.addEventListener("click", () => {
+  allTodos.sort((a, b) => {
+    if (a.deadline === "No deadline" && b.deadline === "No deadline") return 0;
+    if (a.deadline === "No deadline") return 1;
+    if (b.deadline === "No deadline") return -1;
 
-  if (todoText.length > 0) {
-    const todoObject = {
-      text: todoText,
-      completed: false,
-      deadline
-    };
+    const [dayA, monA, yrA] = a.deadline.split(".");
+    const [dayB, monB, yrB] = b.deadline.split(".");
 
-    allTodos.push(todoObject);
-    updateTodoList();
-    saveTodos();
+    const dateA = new Date(`20${yrA}-${monA}-${dayA}`);
+    const dateB = new Date(`20${yrB}-${monB}-${dayB}`);
 
-    todoInput.value = "";
-    todoDeadline.value = "";
-  }
-}
+    return dateB - dateA;
+  });
+  updateTodoList();
+});
+
+/* sort from old to new tasks */
+sortOldBtn.addEventListener("click", () => {
+  allTodos.sort((a, b) => {
+    if (a.deadline === "No deadline" && b.deadline === "No deadline") return 0;
+    if (a.deadline === "No deadline") return 1;
+    if (b.deadline === "No deadline") return -1;
+
+    const [dayA, monA, yrA] = a.deadline.split(".");
+    const [dayB, monB, yrB] = b.deadline.split(".");
+
+    const dateA = new Date(`20${yrA}-${monA}-${dayA}`);
+    const dateB = new Date(`20${yrB}-${monB}-${dayB}`);
+
+    return dateA - dateB;
+  });
+  updateTodoList();
+});
+
+/* let allTodos = getTodos(); */
+/* getTodosFromServer();
+updateTodoList(); */
 
 function updateTodoList() {
   todoListUL.innerHTML = "";
+
+  if (allTodos.length === 0) {
+    todoListUL.innerHTML = `<p class="empty-tasks">Список задач пуст. Добавьте что-нибудь!</p>`;
+    return;
+  }
 
   allTodos.forEach((todo, todoIndex) => {
     const newTodoItem = createNewTodoItem(todo, todoIndex);
@@ -47,6 +76,8 @@ function createNewTodoItem(todo, todoIndex) {
   const todoLI = document.createElement("li");
   const todoText = todo.text;
   const todoDeadline = todo.deadline;
+  const today = new Date;
+  today.setHours(0, 0, 0, 0);
 
   todoLI.className = "todo";
   todoLI.innerHTML = `
@@ -77,28 +108,150 @@ function createNewTodoItem(todo, todoIndex) {
     deleteTodoItem(todoIndex);
   });
 
+  /* old checkbox
   const checkbox = todoLI.querySelector("input");
   checkbox.addEventListener("change", () => {
     allTodos[todoIndex].completed = checkbox.checked;
     saveTodos();
   });
+  checkbox.checked = todo.completed; */
+
+  const checkbox = todoLI.querySelector("input");
+  checkbox.addEventListener("change", async () => {
+    const todoId = allTodos[todoIndex]._id;
+    const isCompleted = checkbox.checked;
+
+    try {
+      const response = await fetch(`http://localhost:3000/api/todos/${todoId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ completed: isCompleted })
+      });
+
+      if (response.ok) {
+        allTodos[todoIndex].completed = isCompleted;
+      }
+    } catch (error) {
+      console.error("Ошибка при обновлении статуса", error);
+      checkbox.checked = !isCompleted;
+    }
+  });
   checkbox.checked = todo.completed;
+
+  if (todoDeadline !== 'No deadline') {
+    const [day, mon, yr] = todoDeadline.split('.');
+    const deadline = new Date(`20${yr}-${mon}-${day}`);
+
+    if(deadline < today) {
+      todoLI.querySelector(".todo-deadline").style.color = "red";
+    }
+  }
 
   return todoLI;
 }
 
+/* old add new todo
+  function addToForm() {
+    const todoText = todoInput.value.trim();
+    const deadline = todoDeadline.value ? dayjs(todoDeadline.value).format("DD.MM.YY") : "No deadline";
+  
+    if (todoText.length > 0) {
+      const todoObject = {
+        text: todoText,
+        completed: false,
+        deadline
+      };
+  
+      allTodos.push(todoObject);
+      updateTodoList();
+      saveTodos();
+  
+      // todoInput.value = "";
+      // todoDeadline.value = "";
+    }
+  } */
+
+async function addToForm() {
+  const todoText = todoInput.value.trim();
+  const deadline = todoDeadline.value ? dayjs(todoDeadline.value).format("DD.MM.YY") : "No deadline";
+
+  if (todoText.length > 0) {
+    const todoObject = {
+      text: todoText,
+      completed: false,
+      deadline
+    };
+
+    try {
+      const response = await fetch("http://localhost:3000/api/todos", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(todoObject)
+      });
+
+      const newTodo = await response.json();
+      allTodos.push(newTodo);
+      updateTodoList();
+
+      todoInput.value = "";
+      todoDeadline.value = "";
+    } catch (error) {
+      console.error("Не удалось добавить задачу:", error);
+    }
+  }
+}
+
+/* old delete todo
 function deleteTodoItem(todoIndex) {
   allTodos = allTodos.filter((_, i) => i !== todoIndex);
   saveTodos();
   updateTodoList();
+} */
+
+async function deleteTodoItem(todoIndex) {
+  const todoId = allTodos[todoIndex]._id;
+  const todoText = allTodos[todoIndex].text;
+
+  if (!confirm(`Вы уверены, что хотите удалить задачу: ${todoText}?`)) {
+    return;
+  }
+
+  try {
+    const response = await fetch(`http://localhost:3000/api/todos/${todoId}`, {
+      method: "DELETE"
+    });
+
+    if (response.ok) {
+      allTodos = allTodos.filter((_, i) => i !== todoIndex);
+      updateTodoList();
+    }
+  } catch (error) {
+    console.error("Не удалось удалить задачу:", error);
+  }
 }
 
-function saveTodos() {
+/* function saveTodos() {
   const todoJson = JSON.stringify(allTodos);
   localStorage.setItem("todos", todoJson);
 }
+ */
 
+/* old get todos (localstorage)
 function getTodos() {
   const todos = localStorage.getItem("todos") || "[]";
   return JSON.parse(todos);
+} */
+
+async function getTodosFromServer() {
+  try {
+    const response = await fetch("http://localhost:3000/api/todos");
+    allTodos = await response.json();
+    updateTodoList();
+  } catch (error) {
+    console.error("Ошибка при загрузке задач: ", error);
+  }
 }

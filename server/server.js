@@ -17,21 +17,25 @@ app.get("/api/todos", async (req, res) => {
 });
 
 /* Add new task */
-app.post("/api/todos", async(req, res) => {
-  const newTodo = Todo.create(req.body);
+app.post("/api/todos", async (req, res) => {
+  const newTodo = await Todo.create(req.body);
   res.json(newTodo);
 });
 
 /* Update task */
-app.patch("/api/todos:id", async (req, res) => {
-  const updatedTodo = await Todo.findByIdAndUpdate(req.params.id, req.body, {new:true});
-  res.json(updatedTodo);
+app.patch("/api/todos/:id", async (req, res) => {
+  try {
+    const updatedTodo = await Todo.findByIdAndUpdate(req.params.id, req.body, { returnDocument: 'after' });
+    res.json(updatedTodo);
+  } catch (error) {
+    res.status(400).json({ message: 'Ошибка при обновлении' });
+  }
 });
 
 /* Delete task */
-app.delete("/api/todos:id", async (req, res) => {
+app.delete("/api/todos/:id", async (req, res) => {
   const deleteTodo = await Todo.findByIdAndDelete(req.params.id);
-  res.json({success:true});
+  res.json({ success: true });
 });
 
 app.listen(3000, () => console.log("Server running on http:\\localhost:3000"));
