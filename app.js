@@ -144,7 +144,6 @@ function createNewTodoItem(todo, todoIndex) {
 }
 
 /* adding to form */
-
 async function addToForm() {
   const todoText = todoInput.value.trim();
   const deadline = todoDeadline.value ? dayjs(todoDeadline.value).format("DD.MM.YY") : "No deadline";
